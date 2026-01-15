@@ -1,4 +1,6 @@
-import { useState } from 'react'
+Here's the fixed Auth.tsx with username:
+Press Ctrl + P, open client/src/components/Auth.tsx, and replace with:
+typescriptimport { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 export default function Auth() {
