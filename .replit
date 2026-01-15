@@ -43,3 +43,5 @@ waitForPort = 5000
 [userenv.shared]
 SUPABASE_URL = "https://ioozkbjskhxphedlwuwl.supabase.co"
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlvb3prYmpza2h4cGhlZGx3dXdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4MDg5NzksImV4cCI6MjA4MzM4NDk3OX0.K5xrBqhL5gjpB-_A1HQWTgCI5xeLxBM0hj4si477dJQ"
+VITE_SUPABASE_URL = "https://ioozkbjskhxphedlwuwl.supabase.co"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlvb3prYmpza2h4cGhlZGx3dXdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4MDg5NzksImV4cCI6MjA4MzM4NDk3OX0.K5xrBqhL5gjpB-_A1HQWTgCI5xeLxBM0hj4si477dJQ"
