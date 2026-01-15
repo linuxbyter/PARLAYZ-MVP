@@ -1,15 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMessages, useCreateMessage } from "@/hooks/use-messages";
 import { MessageCard } from "@/components/MessageCard";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Database } from "lucide-react";
 import { motion } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 
 export default function Home() {
   const [inputValue, setInputValue] = useState("");
+  const [supabaseStatus, setSupabaseStatus] = useState<"connecting" | "connected" | "error">("connecting");
   const { data: messages, isLoading, error } = useMessages();
   const createMessage = useCreateMessage();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const checkSupabase = async () => {
+      try {
+        const { data, error } = await supabase.from("_non_existent_table_just_to_test_connection_").select("count");
+        // Even if the table doesn't exist, if we get a response that isn't a connection error, Supabase is working
+        setSupabaseStatus("connected");
+      } catch (err) {
+        setSupabaseStatus("error");
+      }
+    };
+    checkSupabase();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,8 +57,18 @@ export default function Home() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className="text-center space-y-4"
         >
-          <div className="inline-block px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold tracking-wider uppercase mb-2">
-            Minimalist Starter
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="inline-block px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold tracking-wider uppercase">
+              Minimalist Starter
+            </div>
+            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
+              supabaseStatus === "connected" ? "bg-green-500/10 text-green-600" : 
+              supabaseStatus === "error" ? "bg-red-500/10 text-red-600" : 
+              "bg-yellow-500/10 text-yellow-600"
+            }`}>
+              <Database className="w-3 h-3" />
+              {supabaseStatus}
+            </div>
           </div>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground">
             Hello World.
