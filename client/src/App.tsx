@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
 import Auth from './components/Auth'
 import Dashboard from './components/Dashboard'
+import CreatePool from './pages/CreatePool'
 import type { User } from '@supabase/supabase-js'
+import { Switch, Route } from 'wouter'
 
 function App() {
   const [user, setUser] = useState<User | null>(null)
@@ -33,10 +35,15 @@ function App() {
     )
   }
 
+  if (!user) {
+    return <Auth />
+  }
+
   return (
-    <div>
-      {!user ? <Auth /> : <Dashboard user={user} />}
-    </div>
+    <Switch>
+      <Route path="/" component={() => <Dashboard user={user} />} />
+      <Route path="/create-pool" component={() => <CreatePool user={user} />} />
+    </Switch>
   )
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
+import { useLocation } from 'wouter'
 
 interface Profile {
   id: string
@@ -10,6 +11,7 @@ interface Profile {
 }
 
 export default function Dashboard({ user }: { user: User }) {
+  const [, setLocation] = useLocation()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -47,7 +49,7 @@ export default function Dashboard({ user }: { user: User }) {
       {/* Header */}
       <header className="border-b border-zinc-800 bg-zinc-900">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-yellow-400">PARLAYZ</h1>
+          <h1 className="text-2xl font-bold text-yellow-400 cursor-pointer" onClick={() => setLocation('/')}>PARLAYZ</h1>
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="text-sm text-gray-400">Balance</p>
@@ -74,6 +76,12 @@ export default function Dashboard({ user }: { user: User }) {
           <p className="text-gray-400 text-lg mb-8">
             Your account is set up. Let's start building pools!
           </p>
+          <button
+            onClick={() => setLocation('/create-pool')}
+            className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-4 px-8 rounded-xl transition mb-12 inline-block"
+          >
+            Create Pool
+          </button>
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 max-w-md mx-auto">
             <p className="text-gray-300 mb-4">
               You have <span className="text-yellow-400 font-bold">${profile?.wallet_balance?.toFixed(2)}</span> in mock money
