@@ -5,6 +5,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
   const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
@@ -22,8 +23,9 @@ export default function Auth() {
           password,
           options: {
             data: {
-              username: email.split('@')[0]
-            }
+              username: username || email.split('@')[0]
+            },
+            emailRedirectTo: window.location.origin
           }
         })
         if (error) throw error
@@ -84,6 +86,20 @@ export default function Auth() {
                 required
               />
             </div>
+
+            {isSignUp && (
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Username</label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-yellow-400 transition"
+                  placeholder="Choose a username"
+                  required
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-sm text-gray-400 mb-2">Password</label>
