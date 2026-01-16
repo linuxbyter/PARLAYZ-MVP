@@ -29,8 +29,8 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-yellow-400 text-2xl">Loading Parlayz...</div>
+      <div className="min-h-screen bg-black flex items-center justify-center font-['Inter']">
+        <div className="text-[#D4AF37] text-2xl font-black tracking-tighter animate-pulse" style={{ textShadow: '0 0 20px rgba(212, 175, 55, 0.4)' }}>PARLAYZ</div>
       </div>
     )
   }

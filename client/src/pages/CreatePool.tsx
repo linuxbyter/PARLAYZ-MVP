@@ -97,81 +97,96 @@ export default function CreatePool({ user }: { user: User }) {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <header className="border-b border-zinc-800 bg-zinc-900">
+    <div className="min-h-screen bg-black text-white font-['Inter']">
+      <header className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-yellow-400 cursor-pointer" onClick={() => setLocation('/')}>PARLAYZ</h1>
-          <div className="flex items-center gap-4">
+          <h1 
+            className="text-2xl font-bold tracking-tighter cursor-pointer select-none"
+            style={{ 
+              background: 'linear-gradient(135deg, #D4AF37 0%, #FFD700 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textShadow: '0 0 20px rgba(212, 175, 55, 0.3)'
+            }}
+            onClick={() => setLocation('/')}
+          >
+            PARLAYZ
+          </h1>
+          <div className="flex items-center gap-6">
             <div className="text-right">
-              <p className="text-sm text-gray-400">Balance</p>
-              <p className="text-xl font-bold text-yellow-400">
-                ${profile?.wallet_balance?.toFixed(2) || '0.00'}
+              <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Credits</p>
+              <p className="text-xl font-black text-[#D4AF37]">
+                KSh {profile?.wallet_balance?.toLocaleString() || '0.00'}
               </p>
             </div>
-            <button onClick={() => supabase.auth.signOut()} className="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-lg text-sm">Sign Out</button>
+            <button onClick={() => supabase.auth.signOut()} className="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all">Sign Out</button>
           </div>
         </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-12">
-        <h2 className="text-3xl font-bold mb-8 text-white">Create New Pool</h2>
+        <h2 className="text-4xl font-black mb-8 tracking-tight">Create New Pool</h2>
         
-        {error && <div className="bg-red-500/10 border border-red-500 text-red-400 p-4 rounded-lg mb-6">{error}</div>}
+        {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-5 rounded-2xl mb-8 font-medium">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="space-y-6 bg-zinc-900 p-8 rounded-2xl border border-zinc-800">
+        <form onSubmit={handleSubmit} className="space-y-8 bg-zinc-900/40 p-10 rounded-3xl border border-zinc-800/50 backdrop-blur-sm">
           <div>
-            <label className="block text-sm text-gray-400 mb-2">Title</label>
-            <input maxLength={60} value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-yellow-400 outline-none" placeholder="Will it rain tomorrow?" required />
+            <label className="block text-[10px] uppercase tracking-widest text-zinc-500 font-black mb-3">Pool Title</label>
+            <input maxLength={60} value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-black/50 border border-zinc-800 rounded-xl px-5 py-4 text-white focus:border-[#D4AF37] outline-none transition-all placeholder:text-zinc-700 font-medium" placeholder="Will it rain tomorrow?" required />
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-2">Description</label>
-            <textarea maxLength={200} value={description} onChange={e => setDescription(e.target.value)} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-yellow-400 outline-none h-24" placeholder="Predict if it will rain in NYC tomorrow" required />
+            <label className="block text-[10px] uppercase tracking-widest text-zinc-500 font-black mb-3">Description</label>
+            <textarea maxLength={200} value={description} onChange={e => setDescription(e.target.value)} className="w-full bg-black/50 border border-zinc-800 rounded-xl px-5 py-4 text-white focus:border-[#D4AF37] outline-none h-28 transition-all placeholder:text-zinc-700 font-medium" placeholder="Describe the prediction pool details..." required />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Stake Amount</label>
-              <input type="number" step="0.01" min="0.01" value={stakeAmount} onChange={e => setStakeAmount(e.target.value)} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-yellow-400 outline-none" placeholder="10.00" required />
+              <label className="block text-[10px] uppercase tracking-widest text-zinc-500 font-black mb-3">Stake Amount (KSh)</label>
+              <input type="number" step="1" min="1" value={stakeAmount} onChange={e => setStakeAmount(e.target.value)} className="w-full bg-black/50 border border-zinc-800 rounded-xl px-5 py-4 text-white focus:border-[#D4AF37] outline-none transition-all placeholder:text-zinc-700 font-black" placeholder="1000" required />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Pool Type</label>
-              <div className="flex gap-4 py-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" checked={poolType === 'pool'} onChange={() => setPoolType('pool')} className="accent-yellow-400" /> Open
+              <label className="block text-[10px] uppercase tracking-widest text-zinc-500 font-black mb-3">Pool Type</label>
+              <div className="flex gap-6 py-4">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <input type="radio" checked={poolType === 'pool'} onChange={() => setPoolType('pool')} className="accent-[#D4AF37] w-4 h-4" /> 
+                  <span className="text-sm font-bold uppercase tracking-widest text-zinc-400 group-hover:text-white transition-colors">Open</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" checked={poolType === '1v1'} onChange={() => setPoolType('1v1')} className="accent-yellow-400" /> 1v1
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <input type="radio" checked={poolType === '1v1'} onChange={() => setPoolType('1v1')} className="accent-[#D4AF37] w-4 h-4" /> 
+                  <span className="text-sm font-bold uppercase tracking-widest text-zinc-400 group-hover:text-white transition-colors">1v1</span>
                 </label>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Outcome 1</label>
-              <input value={outcome1} onChange={e => { setOutcome1(e.target.value); if(myChoice === outcome1) setMyChoice(e.target.value); }} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-yellow-400 outline-none" placeholder="Yes" required />
+              <label className="block text-[10px] uppercase tracking-widest text-zinc-500 font-black mb-3">Outcome A</label>
+              <input value={outcome1} onChange={e => { setOutcome1(e.target.value); if(myChoice === outcome1) setMyChoice(e.target.value); }} className="w-full bg-black/50 border border-zinc-800 rounded-xl px-5 py-4 text-white focus:border-[#D4AF37] outline-none transition-all placeholder:text-zinc-700 font-bold" placeholder="Yes" required />
             </div>
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Outcome 2</label>
-              <input value={outcome2} onChange={e => { setOutcome2(e.target.value); if(myChoice === outcome2) setMyChoice(e.target.value); }} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-white focus:border-yellow-400 outline-none" placeholder="No" required />
+              <label className="block text-[10px] uppercase tracking-widest text-zinc-500 font-black mb-3">Outcome B</label>
+              <input value={outcome2} onChange={e => { setOutcome2(e.target.value); if(myChoice === outcome2) setMyChoice(e.target.value); }} className="w-full bg-black/50 border border-zinc-800 rounded-xl px-5 py-4 text-white focus:border-[#D4AF37] outline-none transition-all placeholder:text-zinc-700 font-bold" placeholder="No" required />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm text-gray-400 mb-2">My Choice</label>
-            <div className="flex gap-4 py-3">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" checked={myChoice === outcome1} onChange={() => setMyChoice(outcome1)} className="accent-yellow-400" /> {outcome1}
+            <label className="block text-[10px] uppercase tracking-widest text-zinc-500 font-black mb-3">My Selection</label>
+            <div className="flex gap-8 py-4">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input type="radio" checked={myChoice === outcome1} onChange={() => setMyChoice(outcome1)} className="accent-[#D4AF37] w-4 h-4" /> 
+                <span className="text-sm font-black uppercase tracking-widest text-zinc-400 group-hover:text-white transition-colors">{outcome1}</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" checked={myChoice === outcome2} onChange={() => setMyChoice(outcome2)} className="accent-yellow-400" /> {outcome2}
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input type="radio" checked={myChoice === outcome2} onChange={() => setMyChoice(outcome2)} className="accent-[#D4AF37] w-4 h-4" /> 
+                <span className="text-sm font-black uppercase tracking-widest text-zinc-400 group-hover:text-white transition-colors">{outcome2}</span>
               </label>
             </div>
           </div>
 
-          <button type="submit" disabled={loading} className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-4 rounded-xl transition disabled:opacity-50 mt-4">
-            {loading ? 'Creating...' : 'Create Pool'}
+          <button type="submit" disabled={loading} className="w-full bg-gradient-to-br from-[#D4AF37] to-[#FFD700] hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] text-black font-black py-5 rounded-2xl transition-all duration-300 transform active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.2em] text-sm mt-4">
+            {loading ? 'Processing...' : 'Launch Pool'}
           </button>
         </form>
       </main>
