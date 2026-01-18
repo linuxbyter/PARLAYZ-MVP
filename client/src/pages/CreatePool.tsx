@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import type { User } from '@supabase/supabase-js'
 import { useLocation } from 'wouter'
+import { Plus } from 'lucide-react'
 
 interface Profile {
   id: string
