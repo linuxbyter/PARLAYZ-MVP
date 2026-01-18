@@ -99,7 +99,7 @@ export default function Dashboard({ user }: { user: User }) {
               You have <span className="text-[#D4AF37] font-black">KSh {profile?.wallet_balance?.toLocaleString()}</span> in demo credits
             </p>
             <p className="text-sm text-zinc-500 font-medium">
-              Use these credits to test the platform. Real-world payments coming soon.
+              Practice with virtual currency. Real money coming soon.
             </p>
           </div>
         </div>

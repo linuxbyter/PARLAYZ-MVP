@@ -138,9 +138,9 @@ export default function Auth() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-br from-[#D4AF37] to-[#FFD700] hover:shadow-[0_0_20px_rgba(212,175,55,0.3)] text-black font-black py-4 rounded-xl transition-all duration-300 transform active:scale-[0.98] disabled:opacity-50 uppercase tracking-widest text-sm mt-4"
+              className="w-full bg-gradient-to-br from-[#D4AF37] to-[#FFD700] hover:shadow-[0_0_20px_rgba(212,175,55,0.3)] text-black font-black py-4 rounded-xl transition-all duration-300 transform active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.2em] text-sm mt-4"
             >
-              {loading ? 'Processing...' : isSignUp ? 'Sign up' : 'Sign in'}
+              {loading ? 'Processing...' : isSignUp ? 'Create Account' : 'Sign In'}
             </button>
           </form>
 

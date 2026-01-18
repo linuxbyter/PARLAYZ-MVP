@@ -46,7 +46,7 @@ export default function CreatePool({ user }: { user: User }) {
     }
 
     if (profile && profile.wallet_balance < stake) {
-      setError('Insufficient balance')
+      setError(`Insufficient balance. You need KSh ${stake.toLocaleString()}`)
       setLoading(false)
       return
     }
@@ -101,12 +101,13 @@ export default function CreatePool({ user }: { user: User }) {
       <header className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <h1 
-            className="text-2xl font-bold tracking-tighter cursor-pointer select-none"
+            className="text-2xl font-black tracking-tighter cursor-pointer select-none"
             style={{ 
               background: 'linear-gradient(135deg, #D4AF37 0%, #FFD700 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              textShadow: '0 0 20px rgba(212, 175, 55, 0.3)'
+              textShadow: '0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(212, 175, 55, 0.4)',
+              letterSpacing: '-1px'
             }}
             onClick={() => setLocation('/')}
           >
@@ -125,7 +126,15 @@ export default function CreatePool({ user }: { user: User }) {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-12">
-        <h2 className="text-4xl font-black mb-8 tracking-tight">Create New Pool</h2>
+        <div className="flex items-center gap-4 mb-8">
+          <button 
+            onClick={() => setLocation('/')}
+            className="p-2 hover:bg-zinc-900 rounded-lg transition-colors text-zinc-500 hover:text-white"
+          >
+            <Plus className="w-6 h-6 rotate-45" />
+          </button>
+          <h2 className="text-4xl font-black tracking-tight uppercase">Create Pool</h2>
+        </div>
         
         {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-5 rounded-2xl mb-8 font-medium">{error}</div>}
 
@@ -188,6 +197,14 @@ export default function CreatePool({ user }: { user: User }) {
           <button type="submit" disabled={loading} className="w-full bg-gradient-to-br from-[#D4AF37] to-[#FFD700] hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] text-black font-black py-5 rounded-2xl transition-all duration-300 transform active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.2em] text-sm mt-4">
             {loading ? 'Processing...' : 'Launch Pool'}
           </button>
+          <div className="mt-12 bg-zinc-900/40 border border-zinc-800/50 rounded-3xl p-8 max-w-lg mx-auto backdrop-blur-sm text-center">
+            <p className="text-zinc-300 text-lg mb-4">
+              You have <span className="text-[#D4AF37] font-black">KSh {profile?.wallet_balance?.toLocaleString()}</span> in demo credits
+            </p>
+            <p className="text-sm text-zinc-500 font-medium">
+              Practice with virtual currency. Real money coming soon.
+            </p>
+          </div>
         </form>
       </main>
     </div>
