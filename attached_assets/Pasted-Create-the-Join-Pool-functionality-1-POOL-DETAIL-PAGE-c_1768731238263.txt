@@ -1,0 +1,74 @@
+Create the Join Pool functionality:
+
+1. POOL DETAIL PAGE (client/src/pages/PoolDetail.tsx):
+
+Create route: /pool/:id
+
+PAGE LAYOUT:
+- Same header (PARLAYZ logo, balance, sign out, back button)
+- Pool card (larger version of browse card):
+  * Title (large, bold)
+  * Description (full text)
+  * Status badge (OPEN/LOCKED/SETTLED)
+  * Total pot: "KSh X,XXX"
+  * Stake to enter: "KSh XXX"
+  * Created by: @username
+
+- Two columns showing outcomes with participant counts:
+  * Left: Outcome 1 name (count)
+  * Right: Outcome 2 name (count)
+  * Show % split: "60% vs 40%"
+
+- ENTRIES LIST:
+  * Title: "Participants"
+  * List all entries:
+    - @username
+    - Chose: [outcome]
+    - Staked: KSh XXX
+    - Badge if winner (after settlement)
+
+- JOIN SECTION (if pool is open and user hasn't joined):
+  * "Choose your prediction"
+  * Radio buttons for outcome 1 and outcome 2
+  * Gold "Join Pool - KSh XXX" button
+  * Small text: "Current balance: KSh X,XXX"
+
+- ALREADY JOINED MESSAGE (if user already in pool):
+  * "You're in! 🎯"
+  * Show their chosen outcome
+  * "Waiting for more participants..." (if open)
+  * "Pool locked. Results pending..." (if locked)
+
+2. JOIN POOL LOGIC:
+
+When user clicks "Join Pool":
+- Validate user hasn't joined (check entries table)
+- Validate balance >= stake_amount
+- Validate pool status = 'open'
+- Validate pool isn't full (if 1v1, check entry count < 2)
+
+If valid:
+- Show confirmation modal: "Join [pool title]? This will deduct KSh X from your balance."
+- On confirm:
+  a. Create entry in entries table
+  b. Deduct stake from user's wallet_balance
+  c. If 1v1 and now full (2 entries), auto-lock pool
+  d. Show success message
+  e. Refresh pool data
+
+Error messages:
+- "Insufficient balance. You need KSh XXX more."
+- "You've already joined this pool!"
+- "Pool is full"
+- "Pool is no longer open"
+
+3. ROUTING:
+- Update App.tsx to add /pool/:id route
+- Add navigation from browse cards to pool detail
+- Make pool title clickable on browse page
+
+4. REAL-TIME UPDATES (nice to have):
+- When pool updates, refresh the page data
+- Show live participant count
+
+Use premium design: black cards, gold accents, slips aesthetic

@@ -151,7 +151,10 @@ export default function Home({ user }: { user: User }) {
                   </div>
                 </div>
 
-                <h3 className="text-xl font-black mb-3 line-clamp-2 group-hover:text-[#FFD700] transition-colors uppercase tracking-tight leading-tight flex-grow">
+                <h3 
+                  onClick={() => setLocation(`/pool/${pool.id}`)}
+                  className="text-xl font-black mb-3 line-clamp-2 group-hover:text-[#FFD700] transition-colors uppercase tracking-tight leading-tight flex-grow cursor-pointer"
+                >
                   {pool.title}
                 </h3>
                 <p className="text-zinc-500 text-sm mb-8 line-clamp-2 font-medium leading-relaxed">
@@ -172,7 +175,10 @@ export default function Home({ user }: { user: User }) {
                     <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-black mb-1">Pot Size</p>
                     <p className="text-lg font-black text-[#D4AF37]">KSh {(pool.stake_amount * (pool.entries_count || 1)).toLocaleString()}</p>
                   </div>
-                  <button className="bg-white/5 hover:bg-gradient-to-br hover:from-[#D4AF37] hover:to-[#FFD700] hover:text-black text-white font-black px-8 py-3 rounded-2xl text-[10px] uppercase tracking-[0.2em] transition-all duration-300 shadow-xl group-hover:shadow-[#D4AF37]/10">
+                  <button 
+                    onClick={() => setLocation(`/pool/${pool.id}`)}
+                    className="bg-white/5 hover:bg-gradient-to-br hover:from-[#D4AF37] hover:to-[#FFD700] hover:text-black text-white font-black px-8 py-3 rounded-2xl text-[10px] uppercase tracking-[0.2em] transition-all duration-300 shadow-xl group-hover:shadow-[#D4AF37]/10"
+                  >
                     Join KSh {pool.stake_amount.toLocaleString()}
                   </button>
                 </div>

@@ -3,6 +3,7 @@ import { supabase } from './lib/supabase'
 import Auth from './components/Auth'
 import Home from './pages/Home'
 import CreatePool from './pages/CreatePool'
+import PoolDetail from './pages/PoolDetail'
 import type { User } from '@supabase/supabase-js'
 import { Switch, Route } from 'wouter'
 
@@ -43,6 +44,7 @@ function App() {
     <Switch>
       <Route path="/" component={() => <Home user={user} />} />
       <Route path="/create-pool" component={() => <CreatePool user={user} />} />
+      <Route path="/pool/:id" component={() => <PoolDetail user={user} />} />
     </Switch>
   )
 }
