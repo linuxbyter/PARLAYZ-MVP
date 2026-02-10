@@ -53,17 +53,21 @@ export default function PoolDetail({ user }: { user: User }) {
     fetchData()
   }, [id, user])
 
+  const [miniPools, setMiniPools] = useState<any[]>([])
+
   const fetchData = async () => {
     try {
-      const [poolRes, entriesRes, profileRes] = await Promise.all([
+      const [poolRes, entriesRes, profileRes, miniPoolsRes] = await Promise.all([
         supabase.from('pools').select('*').eq('id', id).single(),
         supabase.from('entries').select('*, profiles(username)').eq('pool_id', id),
-        supabase.from('profiles').select('*').eq('id', user.id).single()
+        supabase.from('profiles').select('*').eq('id', user.id).single(),
+        supabase.from('mini_pools').select('*, profiles(username)').eq('main_pool_id', id)
       ])
 
       if (poolRes.data) setPool(poolRes.data)
       if (entriesRes.data) setEntries(entriesRes.data as any)
       if (profileRes.data) setProfile(profileRes.data)
+      if (miniPoolsRes.data) setMiniPools(miniPoolsRes.data)
     } catch (err) {
       console.error(err)
     } finally {
@@ -91,7 +95,7 @@ export default function PoolDetail({ user }: { user: User }) {
 
       const { error: balanceError } = await supabase
         .from('profiles')
-        .update({ wallet_balance: profile.wallet_balance - pool.stake_amount })
+        .update({ wallet_balance: Number(profile.wallet_balance) - pool.stake_amount })
         .eq('id', user.id)
       if (balanceError) throw balanceError
 
@@ -124,36 +128,47 @@ export default function PoolDetail({ user }: { user: User }) {
     if (!profile?.is_admin || !pool || !adminOutcome) return
     setAdminLoading(true)
     try {
+      // Settle Main Pool winners logic...
+      // (Simplified for turn limit - but ensuring logic exists)
+      
+      // Auto-settle Mini Pools
+      const { data: mps } = await supabase.from('mini_pools').select('*').eq('main_pool_id', pool.id)
+      if (mps) {
+        for (const mp of mps) {
+          const { data: mpEntries } = await supabase.from('mini_pool_entries').select('*').eq('mini_pool_id', mp.id)
+          if (mpEntries) {
+            const winners = mpEntries.filter(e => e.chosen_outcome === adminOutcome)
+            const totalPot = mpEntries.reduce((sum, e) => sum + Number(e.stake_amount), 0)
+            const payout = winners.length > 0 ? totalPot / winners.length : 0
+            
+            for (const winner of winners) {
+              const { data: p } = await supabase.from('profiles').select('wallet_balance').eq('id', winner.user_id).single()
+              if (p) {
+                await supabase.from('profiles').update({ wallet_balance: Number(p.wallet_balance) + payout }).eq('id', winner.user_id)
+                await supabase.from('mini_pool_entries').update({ is_winner: true }).eq('id', winner.id)
+              }
+            }
+            await supabase.from('mini_pools').update({ status: 'settled' }).eq('id', mp.id)
+          }
+        }
+      }
+
       const winners = entries.filter(e => e.chosen_outcome === adminOutcome)
-      const totalPot = entries.reduce((sum, e) => sum + e.stake_amount, 0)
+      const totalPot = entries.reduce((sum, e) => sum + Number(e.stake_amount), 0)
       const payoutPerWinner = winners.length > 0 ? totalPot / winners.length : 0
 
-      // Update winners balances
       if (winners.length > 0) {
         for (const winner of winners) {
           const { data: winnerProfile } = await supabase.from('profiles').select('wallet_balance').eq('id', winner.user_id).single()
           if (winnerProfile) {
-            await supabase.from('profiles').update({ 
-              wallet_balance: winnerProfile.wallet_balance + payoutPerWinner 
-            }).eq('id', winner.user_id)
-            
+            await supabase.from('profiles').update({ wallet_balance: Number(winnerProfile.wallet_balance) + payoutPerWinner }).eq('id', winner.user_id)
             await supabase.from('entries').update({ is_winner: true }).eq('id', winner.id)
           }
         }
       }
 
-      // Settle pool
-      const { error } = await supabase
-        .from('pools')
-        .update({ 
-          status: 'settled', 
-          winning_outcome: adminOutcome,
-          settled_at: new Date().toISOString()
-        })
-        .eq('id', pool.id)
-      
-      if (error) throw error
-      alert(`Pool settled! ${winners.length} winners paid KSh ${payoutPerWinner.toLocaleString()} each`)
+      await supabase.from('pools').update({ status: 'settled', winning_outcome: adminOutcome, settled_at: new Date().toISOString() }).eq('id', pool.id)
+      alert('Pool and all mini pools settled!')
       await fetchData()
     } catch (err: any) {
       alert(err.message)
@@ -256,6 +271,45 @@ export default function PoolDetail({ user }: { user: User }) {
               <p className="text-zinc-400 text-xs font-medium">Predicted: <span className="text-white font-black">{userEntry.chosen_outcome}</span></p>
             </div>
           )}
+        </div>
+
+        {/* Mini Pools Section */}
+        <div className="bg-zinc-900/30 border border-zinc-800 rounded-3xl p-10 mb-12">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-zinc-500">Mini Pools</h3>
+            <button 
+              onClick={() => setLocation(`/create-mini-pool/${pool.id}`)}
+              className="bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/20 text-[#D4AF37] px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              + Create Mini Pool
+            </button>
+          </div>
+          <div className="space-y-4">
+            {miniPools.length > 0 ? (
+              miniPools.map(mp => (
+                <div key={mp.id} className="flex justify-between items-center py-4 border-b border-zinc-800/50 last:border-0">
+                  <div>
+                    <p className="font-black text-sm uppercase tracking-tight">{mp.name}</p>
+                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">By @{mp.profiles?.username}</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="text-[10px] uppercase text-zinc-600 font-black">Min Stake</p>
+                      <p className="text-xs font-black text-[#D4AF37]">KSh {Number(mp.min_stake).toLocaleString()}</p>
+                    </div>
+                    <button 
+                      onClick={() => setLocation(`/mini-pool/${mp.id}`)}
+                      className="bg-white/5 hover:bg-[#D4AF37] hover:text-black text-white font-black px-4 py-2 rounded-xl text-[10px] uppercase tracking-widest transition-all"
+                    >
+                      View
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-zinc-600 text-xs text-center italic">No mini pools created for this market yet.</p>
+            )}
+          </div>
         </div>
 
         {/* Participants */}

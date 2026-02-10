@@ -4,6 +4,7 @@ import Auth from './components/Auth'
 import Home from './pages/Home'
 import CreatePool from './pages/CreatePool'
 import PoolDetail from './pages/PoolDetail'
+import CreateMiniPool from './pages/CreateMiniPool'
 import type { User } from '@supabase/supabase-js'
 import { Switch, Route } from 'wouter'
 
@@ -45,6 +46,7 @@ function App() {
       <Route path="/" component={() => <Home user={user} />} />
       <Route path="/create-pool" component={() => <CreatePool user={user} />} />
       <Route path="/pool/:id" component={() => <PoolDetail user={user} />} />
+      <Route path="/create-mini-pool/:mainPoolId" component={() => <CreateMiniPool user={user} />} />
     </Switch>
   )
 }
