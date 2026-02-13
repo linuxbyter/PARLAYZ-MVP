@@ -22,6 +22,7 @@ interface Profile {
 }
 
 export default function Home({ user }: { user: User }) {
+  const ADMIN_EMAIL = "makau1.peter@gmail.com"; // CHANGE THIS to your actual email
   const [, setLocation] = useLocation()
   const [pools, setPools] = useState<Pool[]>([])
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -99,13 +100,15 @@ export default function Home({ user }: { user: User }) {
             <h2 className="text-4xl font-black tracking-tight mb-2 uppercase">Active Prediction Markets</h2>
             <p className="text-zinc-500 font-medium tracking-wide">Practice with virtual currency. Real money coming soon.</p>
           </div>
-          <button
-            onClick={() => setLocation('/create-pool')}
-            className="flex items-center gap-2 bg-gradient-to-br from-[#D4AF37] to-[#FFD700] text-black font-black py-4 px-8 rounded-xl transition-all hover:scale-105 active:scale-95 uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(212,175,55,0.3)]"
-          >
-            <Plus className="w-5 h-5" />
-            Create Pool
-          </button>
+          {user.email === ADMIN_EMAIL && (
+  <button
+    onClick={() => setLocation('/create-pool')}
+    className="flex items-center gap-2 bg-gradient-to-br from-[#D4AF37] to-[#FFD700] text-black font-black py-4 px-8 rounded-xl transition-all hover:scale-105 active:scale-95 uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(212,175,55,0.3)]"
+  >
+    <Plus className="w-5 h-5" />
+    Admin: New Official Pool
+  </button>
+)}
         </div>
 
         {/* Filters */}
@@ -175,12 +178,21 @@ export default function Home({ user }: { user: User }) {
                     <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-black mb-1">Pot Size</p>
                     <p className="text-lg font-black text-[#D4AF37]">KSh {(pool.stake_amount * (pool.entries_count || 1)).toLocaleString()}</p>
                   </div>
-                  <button 
-                    onClick={() => setLocation(`/pool/${pool.id}`)}
-                    className="bg-white/5 hover:bg-gradient-to-br hover:from-[#D4AF37] hover:to-[#FFD700] hover:text-black text-white font-black px-8 py-3 rounded-2xl text-[10px] uppercase tracking-[0.2em] transition-all duration-300 shadow-xl group-hover:shadow-[#D4AF37]/10"
-                  >
-                    Join KSh {pool.stake_amount.toLocaleString()}
-                  </button>
+                  <div className="flex flex-col gap-2 w-full">
+  <button 
+    onClick={() => setLocation(`/pool/${pool.id}`)}
+    className="w-full bg-white/5 hover:bg-zinc-800 text-white font-black px-8 py-3 rounded-2xl text-[10px] uppercase tracking-[0.2em] transition-all border border-zinc-800"
+  >
+    Join Global Pool
+  </button>
+  
+  <button 
+    onClick={() => alert('Challenge Link Created! Send this to your friend to bet against them.')}
+    className="w-full bg-gradient-to-br from-[#D4AF37] to-[#FFD700] text-black font-black px-8 py-3 rounded-2xl text-[10px] uppercase tracking-[0.2em] transition-all hover:scale-[1.02]"
+  >
+    Challenge a Friend
+  </button>
+</div>
                 </div>
               </div>
             ))
