@@ -53,49 +53,53 @@ export default function CreatePool({ user }: { user: User }) {
     }
 
     try {
-      // 1. Create Pool
-      const { data: pool, error: poolError } = await supabase
-        .from('pools')
-        .insert({
-          creator_id: user.id,
-          title,
-          description,
-          stake_amount: stake,
-          pool_type: poolType,
-          outcomes: [outcome1, outcome2],
-          max_entries: poolType === '1v1' ? 2 : null,
-          status: 'open'
-        })
-        .select()
-        .single()
+    // STEP 1: Create the actual Pool
+    const { data: pool, error: poolError } = await supabase
+      .from('pools')
+      .insert({
+        title,
+        description,
+        stake_amount: stake,
+        pool_type: 'binary',
+        outcomes: ['Yes', 'No'],
+        creator_id: user.id,
+        status: 'open'
+      })
+      .select()
+      .single()
 
-      if (poolError) throw poolError
+    if (poolError) throw poolError
 
-      // 2. Create Entry
+    // --- THE FIX STARTS HERE ---
+    // If you are the ADMIN, we skip the part where you have to join and pay
+    const ADMIN_EMAIL = "your-email@example.com"; 
+
+    if (user.email !== ADMIN_EMAIL) {
+      // 2. Create Entry (Forced Join for regular users)
       const { error: entryError } = await supabase.from('entries').insert({
         user_id: user.id,
         pool_id: pool.id,
-        chosen_outcome: myChoice,
+        chosen_outcome: outcomes[0], // or your state variable for choice
         stake_amount: stake
       })
-
       if (entryError) throw entryError
 
-      // 3. Update Balance
+      // 3. Deduct Credits from user balance
       const { error: balanceError } = await supabase
         .from('profiles')
-        .update({ wallet_balance: profile!.wallet_balance - stake })
+        .update({ wallet_balance: (profile?.wallet_balance || 0) - stake })
         .eq('id', user.id)
-
       if (balanceError) throw balanceError
-
-      setLocation('/')
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
     }
+    // --- THE FIX ENDS HERE ---
+
+    setLocation('/')
+  } catch (err: any) {
+    alert(err.message)
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <div className="min-h-screen bg-black text-white font-['Inter']">
