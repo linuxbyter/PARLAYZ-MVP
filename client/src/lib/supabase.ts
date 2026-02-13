@@ -8,7 +8,4 @@ console.log('Supabase Init Check:', {
   urlStart: supabaseUrl?.substring(0, 10)
 })
 
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder'
-)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
