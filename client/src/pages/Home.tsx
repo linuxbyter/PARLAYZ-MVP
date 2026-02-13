@@ -190,7 +190,7 @@ export default function Home({ user }: { user: User }) {
     onClick={() => alert('Challenge Link Created! Send this to your friend to bet against them.')}
     className="w-full bg-gradient-to-br from-[#D4AF37] to-[#FFD700] text-black font-black px-8 py-3 rounded-2xl text-[10px] uppercase tracking-[0.2em] transition-all hover:scale-[1.02]"
   >
-    Challenge a Friend
+    Wager a Friend
   </button>
 </div>
                 </div>
