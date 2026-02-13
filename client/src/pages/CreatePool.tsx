@@ -15,7 +15,10 @@ export default function CreatePool({ user }: { user: User }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const ADMIN_EMAIL = "makau1.peter@gmail.com"; // Replace with your actual email
+  
+  // YOUR ADMIN EMAIL
+  const ADMIN_EMAIL = "makau1.peter@gmail.com"; 
+
   // Form Fields
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -46,60 +49,55 @@ export default function CreatePool({ user }: { user: User }) {
       return
     }
 
-    if (profile && profile.wallet_balance < stake) {
+    // Only check balance for non-admins
+    if (user.email !== ADMIN_EMAIL && profile && profile.wallet_balance < stake) {
       setError(`Insufficient balance. You need KSh ${stake.toLocaleString()}`)
       setLoading(false)
       return
     }
 
     try {
-    // STEP 1: Create the actual Pool
-    const { data: pool, error: poolError } = await supabase
-      .from('pools')
-      .insert({
-        title,
-        description,
-        stake_amount: stake,
-        pool_type: 'binary',
-        outcomes: ['Yes', 'No'],
-        creator_id: user.id,
-        status: 'open'
-      })
-      .select()
-      .single()
+      // 1. Create the Pool
+      const { data: pool, error: poolError } = await supabase
+        .from('pools')
+        .insert({
+          title,
+          description,
+          stake_amount: stake,
+          pool_type: poolType,
+          outcomes: [outcome1, outcome2],
+          creator_id: user.id,
+          status: 'open'
+        })
+        .select()
+        .single()
 
-    if (poolError) throw poolError
+      if (poolError) throw poolError
 
-    // --- THE FIX STARTS HERE ---
-    // If you are the ADMIN, we skip the part where you have to join and pay
-    const ADMIN_EMAIL = "your-email@example.com"; 
+      // 2. Only Join & Deduct if NOT Admin
+      if (user.email !== ADMIN_EMAIL) {
+        const { error: entryError } = await supabase.from('entries').insert({
+          user_id: user.id,
+          pool_id: pool.id,
+          chosen_outcome: myChoice,
+          stake_amount: stake
+        })
+        if (entryError) throw entryError
 
-    if (user.email !== ADMIN_EMAIL) {
-      // 2. Create Entry (Forced Join for regular users)
-      const { error: entryError } = await supabase.from('entries').insert({
-        user_id: user.id,
-        pool_id: pool.id,
-        chosen_outcome: outcomes[0], // or your state variable for choice
-        stake_amount: stake
-      })
-      if (entryError) throw entryError
+        const { error: balanceError } = await supabase
+          .from('profiles')
+          .update({ wallet_balance: (profile?.wallet_balance || 0) - stake })
+          .eq('id', user.id)
+        if (balanceError) throw balanceError
+      }
 
-      // 3. Deduct Credits from user balance
-      const { error: balanceError } = await supabase
-        .from('profiles')
-        .update({ wallet_balance: (profile?.wallet_balance || 0) - stake })
-        .eq('id', user.id)
-      if (balanceError) throw balanceError
+      setLocation('/')
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
     }
-    // --- THE FIX ENDS HERE ---
-
-    setLocation('/')
-  } catch (err: any) {
-    alert(err.message)
-  } finally {
-    setLoading(false)
   }
-}
 
   return (
     <div className="min-h-screen bg-black text-white font-['Inter']">
@@ -177,11 +175,11 @@ export default function CreatePool({ user }: { user: User }) {
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label className="block text-[10px] uppercase tracking-widest text-zinc-500 font-black mb-3">Outcome A</label>
-              <input value={outcome1} onChange={e => { setOutcome1(e.target.value); if(myChoice === outcome1) setMyChoice(e.target.value); }} className="w-full bg-black/50 border border-zinc-800 rounded-xl px-5 py-4 text-white focus:border-[#D4AF37] outline-none transition-all placeholder:text-zinc-700 font-bold" placeholder="Yes" required />
+              <input value={outcome1} onChange={e => setOutcome1(e.target.value)} className="w-full bg-black/50 border border-zinc-800 rounded-xl px-5 py-4 text-white focus:border-[#D4AF37] outline-none transition-all placeholder:text-zinc-700 font-bold" placeholder="Yes" required />
             </div>
             <div>
               <label className="block text-[10px] uppercase tracking-widest text-zinc-500 font-black mb-3">Outcome B</label>
-              <input value={outcome2} onChange={e => { setOutcome2(e.target.value); if(myChoice === outcome2) setMyChoice(e.target.value); }} className="w-full bg-black/50 border border-zinc-800 rounded-xl px-5 py-4 text-white focus:border-[#D4AF37] outline-none transition-all placeholder:text-zinc-700 font-bold" placeholder="No" required />
+              <input value={outcome2} onChange={e => setOutcome2(e.target.value)} className="w-full bg-black/50 border border-zinc-800 rounded-xl px-5 py-4 text-white focus:border-[#D4AF37] outline-none transition-all placeholder:text-zinc-700 font-bold" placeholder="No" required />
             </div>
           </div>
 
@@ -199,24 +197,21 @@ export default function CreatePool({ user }: { user: User }) {
             </div>
           </div>
 
-          
-
           {user.email === ADMIN_EMAIL ? (
-  <button type="submit" disabled={loading} className="w-full bg-gradient-to-br from-[#D4AF37] to-[#FFD700] ...">
-    {loading ? 'Processing...' : 'Launch Official Pool'}
-  </button>
-) : (
-  <div className="bg-zinc-800/50 p-6 rounded-2xl text-center border border-zinc-700">
-    <p className="text-zinc-400 font-bold uppercase tracking-widest text-xs">
-      Official pool creation is restricted to Admins.
-    </p>
-    <p className="text-[#D4AF37] text-sm mt-2 font-black uppercase">
-      Challenge a friend feature coming soon!
-    </p>
-  </div>
-)}
+            <button type="submit" disabled={loading} className="w-full bg-gradient-to-br from-[#D4AF37] to-[#FFD700] hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] text-black font-black py-5 rounded-2xl transition-all duration-300 transform active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.2em] text-sm mt-4">
+              {loading ? 'Processing...' : 'Launch Official Pool'}
+            </button>
+          ) : (
+            <div className="bg-zinc-800/50 p-6 rounded-2xl text-center border border-zinc-700">
+              <p className="text-zinc-400 font-bold uppercase tracking-widest text-xs">
+                Official pool creation is restricted to Admins.
+              </p>
+              <p className="text-[#D4AF37] text-sm mt-2 font-black uppercase">
+                Challenge a friend feature coming soon!
+              </p>
+            </div>
+          )}
 
-          
           <div className="mt-12 bg-zinc-900/40 border border-zinc-800/50 rounded-3xl p-8 max-w-lg mx-auto backdrop-blur-sm text-center">
             <p className="text-zinc-300 text-lg mb-4">
               You have <span className="text-[#D4AF37] font-black">KSh {profile?.wallet_balance?.toLocaleString()}</span> in demo credits
