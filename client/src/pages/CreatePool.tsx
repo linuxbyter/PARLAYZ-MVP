@@ -15,7 +15,7 @@ export default function CreatePool({ user }: { user: User }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
+  const ADMIN_EMAIL = "makau1.peter@gmail.com"; // Replace with your actual email
   // Form Fields
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -195,9 +195,24 @@ export default function CreatePool({ user }: { user: User }) {
             </div>
           </div>
 
-          <button type="submit" disabled={loading} className="w-full bg-gradient-to-br from-[#D4AF37] to-[#FFD700] hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] text-black font-black py-5 rounded-2xl transition-all duration-300 transform active:scale-[0.98] disabled:opacity-50 uppercase tracking-[0.2em] text-sm mt-4">
-            {loading ? 'Processing...' : 'Launch Pool'}
-          </button>
+          
+
+          {user.email === ADMIN_EMAIL ? (
+  <button type="submit" disabled={loading} className="w-full bg-gradient-to-br from-[#D4AF37] to-[#FFD700] ...">
+    {loading ? 'Processing...' : 'Launch Official Pool'}
+  </button>
+) : (
+  <div className="bg-zinc-800/50 p-6 rounded-2xl text-center border border-zinc-700">
+    <p className="text-zinc-400 font-bold uppercase tracking-widest text-xs">
+      Official pool creation is restricted to Admins.
+    </p>
+    <p className="text-[#D4AF37] text-sm mt-2 font-black uppercase">
+      Challenge a friend feature coming soon!
+    </p>
+  </div>
+)}
+
+          
           <div className="mt-12 bg-zinc-900/40 border border-zinc-800/50 rounded-3xl p-8 max-w-lg mx-auto backdrop-blur-sm text-center">
             <p className="text-zinc-300 text-lg mb-4">
               You have <span className="text-[#D4AF37] font-black">KSh {profile?.wallet_balance?.toLocaleString()}</span> in demo credits
