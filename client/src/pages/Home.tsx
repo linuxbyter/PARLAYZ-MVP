@@ -107,6 +107,38 @@ export default function Home({ user }: { user: User }) {
 
   const filteredPools = pools.filter(p => filter === 'all' || p.status === filter)
 
+  // 1. Add these new states
+const [isModalOpen, setIsModalOpen] = useState(false);
+const [selectedPool, setSelectedPool] = useState<Pool | null>(null);
+const [stakeInput, setStakeInput] = useState<number>(0);
+const [sideSelection, setSideSelection] = useState<'Yes' | 'No'>('Yes');
+
+// 2. Add the Create Offer function
+const handleCreateOffer = async () => {
+  if (!selectedPool || stakeInput <= 0) return;
+  if (profile && profile.wallet_balance < stakeInput) {
+    alert("Insufficient balance!");
+    return;
+  }
+
+  const { error } = await supabase.rpc('create_p2p_offer', {
+    p_pool_id: selectedPool.id,
+    p_creator_id: user.id,
+    p_side: sideSelection,
+    p_stake_amount: stakeInput
+  });
+
+  if (error) {
+    alert(error.message);
+  } else {
+    alert("Offer Posted to Lobby!");
+    setIsModalOpen(false);
+    setStakeInput(0);
+    fetchLobby(); // Refresh the lobby
+    fetchData();  // Refresh your balance
+  }
+};
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
