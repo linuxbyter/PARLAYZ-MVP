@@ -206,3 +206,38 @@ export default function Home({ user }: { user: User }) {
     </div>
   )
 }
+// 1. Add a state to hold the offers
+const [offers, setOffers] = useState<any[]>([]);
+
+// 2. Fetch the offers inside your useEffect
+useEffect(() => {
+  const fetchOffers = async () => {
+    const { data } = await supabase
+      .from('p2p_offers')
+      .select('*, profiles(username), pools(title)')
+      .eq('status', 'open')
+      .order('created_at', { ascending: false });
+    
+    if (data) setOffers(data);
+  };
+
+  fetchOffers();
+}, []);
+
+// 3. The Match Function
+const handleMatch = async (offerId: string, amount: number) => {
+  if (profile!.wallet_balance < amount) {
+    alert("Insufficient balance to match this wager!");
+    return;
+  }
+
+  // Deduct from Taker, Update Offer to 'matched'
+  const { error } = await supabase.rpc('match_p2p_wager', {
+    target_offer_id: offerId,
+    taker_id: user.id,
+    match_amount: amount
+  });
+
+  if (error) alert(error.message);
+  else alert("Wager Matched! It's on.");
+};
