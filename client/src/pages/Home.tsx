@@ -17,227 +17,133 @@ interface Pool {
   entries_count?: number
 }
 
-interface Profile {
-  wallet_balance: number
-}
-
 export default function Home({ user }: { user: User }) {
-  const ADMIN_EMAIL = "makau1.peter@gmail.com"; // CHANGE THIS to your actual email
+  const ADMIN_EMAIL = "makau1.peter@gmail.com"; 
   const [, setLocation] = useLocation()
   const [pools, setPools] = useState<Pool[]>([])
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
+  const [offers, setOffers] = useState<any[]>([])
 
   useEffect(() => {
-    fetchData()
+    if (user) {
+      fetchData()
+      fetchLobby()
+    }
   }, [user])
 
   const fetchData = async () => {
     try {
       const [poolsRes, profileRes] = await Promise.all([
         supabase.from('pools').select('*').order('created_at', { ascending: false }),
-        supabase.from('profiles').select('wallet_balance').eq('id', user.id).single()
+        supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()
       ])
 
       if (poolsRes.data) {
-        // Mock entries count for now
-        const poolsWithCount = poolsRes.data.map(p => ({ ...p, entries_count: Math.floor(Math.random() * 10) + 1 }))
+        const poolsWithCount = poolsRes.data.map(p => ({ 
+          ...p, 
+          entries_count: Math.floor(Math.random() * 10) + 1 
+        }))
         setPools(poolsWithCount)
       }
       if (profileRes.data) setProfile(profileRes.data)
     } catch (err) {
-      console.error(err)
+      console.error("Fetch Data Error:", err)
     } finally {
       setLoading(false)
     }
   }
 
-  const filteredPools = pools.filter(p => {
-    if (filter === 'all') return true
-    return p.status === filter
-  })
+  const fetchLobby = async () => {
+    try {
+      const { data } = await supabase
+        .from('p2p_offers')
+        .select('*, profiles(username), pools(title)')
+        .eq('status', 'open')
+        .order('created_at', { ascending: false });
+      
+      if (data) setOffers(data);
+    } catch (err) {
+      console.error("Lobby Fetch Error:", err)
+    }
+  };
+
+  const handleMatch = async (offerId: string, amount: number) => {
+    if (!profile || profile.wallet_balance < amount) {
+      alert("Insufficient balance!");
+      return;
+    }
+
+    const { error } = await supabase.rpc('match_p2p_wager', {
+      target_offer_id: offerId,
+      taker_id: user.id,
+      match_amount: amount
+    });
+
+    if (error) alert(error.message);
+    else {
+      alert("Matched!");
+      fetchLobby();
+      fetchData();
+    }
+  };
+
+  const filteredPools = pools.filter(p => filter === 'all' || p.status === filter)
 
   return (
     <div className="min-h-screen bg-black text-white font-['Inter']">
-      {/* Header */}
       <header className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 
-            className="text-2xl font-black tracking-tighter cursor-pointer select-none"
-            style={{ 
-              background: 'linear-gradient(135deg, #D4AF37 0%, #FFD700 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              textShadow: '0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(212, 175, 55, 0.4)',
-              letterSpacing: '-1px'
-            }}
-            onClick={() => setLocation('/')}
-          >
-            PARLAYZ
-          </h1>
+          <h1 className="text-2xl font-black tracking-tighter" style={{ color: '#D4AF37' }}>PARLAYZ</h1>
           <div className="flex items-center gap-6">
             <div className="text-right">
-              <p className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Credits</p>
+              <p className="text-[10px] uppercase text-zinc-500 font-bold">Credits</p>
               <p className="text-xl font-black text-[#D4AF37]">
                 KSh {profile?.wallet_balance?.toLocaleString() || '0'}
               </p>
             </div>
-            <button
-              onClick={() => supabase.auth.signOut()}
-              className="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all"
-            >
-              Sign Out
-            </button>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-12">
-        {/* Hero */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-          <div>
-            <h2 className="text-4xl font-black tracking-tight mb-2 uppercase">Active Prediction Markets</h2>
-            <p className="text-zinc-500 font-medium tracking-wide">Practice with virtual currency. Real money coming soon.</p>
-          </div>
-          {user.email === ADMIN_EMAIL && (
-  <button
-    onClick={() => setLocation('/create-pool')}
-    className="flex items-center gap-2 bg-gradient-to-br from-[#D4AF37] to-[#FFD700] text-black font-black py-4 px-8 rounded-xl transition-all hover:scale-105 active:scale-95 uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(212,175,55,0.3)]"
-  >
-    <Plus className="w-5 h-5" />
-    Admin: New Official Pool
-  </button>
-)}
-        </div>
-
-        {/* Filters */}
-        <div className="flex gap-2 mb-10 overflow-x-auto pb-2 no-scrollbar">
-          {['all', 'open', 'locked', 'settled'].map(f => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${
-                filter === f 
-                ? 'bg-gradient-to-br from-[#D4AF37] to-[#FFD700] border-transparent text-black shadow-[0_0_15px_rgba(212,175,55,0.2)]' 
-                : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-600'
-              }`}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {loading ? (
-            Array(6).fill(0).map((_, i) => (
-              <div key={i} className="h-72 bg-zinc-900/50 rounded-3xl border border-zinc-800 animate-pulse" />
-            ))
-          ) : filteredPools.length > 0 ? (
-            filteredPools.map(pool => (
-              <div 
-                key={pool.id}
-                className="group bg-zinc-900/20 border border-zinc-800 hover:border-[#D4AF37]/40 rounded-3xl p-7 transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] flex flex-col h-full"
-              >
-                <div className="flex justify-between items-start mb-6">
-                  <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border ${
-                    pool.status === 'open' ? 'bg-green-500/10 border-green-500/20 text-green-400' :
-                    pool.status === 'locked' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400' :
-                    'bg-zinc-500/10 border-zinc-500/20 text-zinc-400'
-                  }`}>
-                    {pool.status}
-                  </span>
-                  <div className="flex items-center gap-1.5 text-zinc-500 text-[10px] font-black uppercase tracking-widest">
-                    <Users className="w-3.5 h-3.5" />
-                    {pool.entries_count} entries
-                  </div>
+        {/* P2P Lobby */}
+        <section className="mb-12">
+          <h3 className="text-[10px] uppercase tracking-widest text-zinc-500 font-black mb-6">Live P2P Lobby</h3>
+          <div className="grid gap-4">
+            {offers?.map((offer) => (
+              <div key={offer.id} className="bg-zinc-900/50 p-4 rounded-xl flex justify-between items-center border border-zinc-800">
+                <div>
+                  <p className="text-xs font-bold text-[#D4AF37]">@{offer.profiles?.username}</p>
+                  <p className="text-sm font-bold">{offer.pools?.title}</p>
                 </div>
-
-                <h3 
-                  onClick={() => setLocation(`/pool/${pool.id}`)}
-                  className="text-xl font-black mb-3 line-clamp-2 group-hover:text-[#FFD700] transition-colors uppercase tracking-tight leading-tight flex-grow cursor-pointer"
+                <button 
+                  onClick={() => handleMatch(offer.id, offer.stake_amount)}
+                  className="bg-white text-black px-4 py-2 rounded-lg text-xs font-bold"
                 >
-                  {pool.title}
-                </h3>
-                <p className="text-zinc-500 text-sm mb-8 line-clamp-2 font-medium leading-relaxed">
-                  {pool.description}
-                </p>
-
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                  {pool.outcomes.map((o, idx) => (
-                    <div key={idx} className="bg-black/40 border border-zinc-800 rounded-2xl p-4 text-center group-hover:border-zinc-700 transition-colors">
-                      <p className="text-[9px] uppercase tracking-widest text-zinc-600 font-black mb-1.5">{o}</p>
-                      <p className="text-base font-black text-zinc-300">{(Math.random() * 5 + 1).toFixed(0)}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between pt-6 border-t border-zinc-800/50 mt-auto">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-widest text-zinc-600 font-black mb-1">Pot Size</p>
-                    <p className="text-lg font-black text-[#D4AF37]">KSh {(pool.stake_amount * (pool.entries_count || 1)).toLocaleString()}</p>
-                  </div>
-                  <div className="flex flex-col gap-2 w-full">
-  <button 
-    onClick={() => setLocation(`/pool/${pool.id}`)}
-    className="w-full bg-white/5 hover:bg-zinc-800 text-white font-black px-8 py-3 rounded-2xl text-[10px] uppercase tracking-[0.2em] transition-all border border-zinc-800"
-  >
-    Join Global Pool
-  </button>
-  
-  <button 
-    onClick={() => alert('Challenge Link Created! Send this to your friend to bet against them.')}
-    className="w-full bg-gradient-to-br from-[#D4AF37] to-[#FFD700] text-black font-black px-8 py-3 rounded-2xl text-[10px] uppercase tracking-[0.2em] transition-all hover:scale-[1.02]"
-  >
-    Wager a Friend
-  </button>
-</div>
-                </div>
+                  Match {offer.stake_amount}
+                </button>
               </div>
-            ))
-          ) : (
-            <div className="col-span-full py-32 text-center bg-zinc-900/10 rounded-3xl border border-dashed border-zinc-800/50">
-              <p className="text-zinc-600 font-black uppercase tracking-[0.3em] text-sm">No pools live in this category</p>
+            ))}
+          </div>
+        </section>
+
+        {/* Global Pools */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredPools.map(pool => (
+            <div key={pool.id} className="bg-zinc-900/20 border border-zinc-800 p-6 rounded-3xl">
+              <h3 className="text-lg font-black mb-4 uppercase">{pool.title}</h3>
+              <button 
+                onClick={() => setLocation(`/pool/${pool.id}`)}
+                className="w-full bg-zinc-800 text-white py-3 rounded-xl text-[10px] font-black uppercase"
+              >
+                Join Pool
+              </button>
             </div>
-          )}
+          ))}
         </div>
       </main>
     </div>
   )
 }
-// 1. Add a state to hold the offers
-const [offers, setOffers] = useState<any[]>([]);
-
-// 2. Fetch the offers inside your useEffect
-useEffect(() => {
-  const fetchOffers = async () => {
-    const { data } = await supabase
-      .from('p2p_offers')
-      .select('*, profiles(username), pools(title)')
-      .eq('status', 'open')
-      .order('created_at', { ascending: false });
-    
-    if (data) setOffers(data);
-  };
-
-  fetchOffers();
-}, []);
-
-// 3. The Match Function
-const handleMatch = async (offerId: string, amount: number) => {
-  if (profile!.wallet_balance < amount) {
-    alert("Insufficient balance to match this wager!");
-    return;
-  }
-
-  // Deduct from Taker, Update Offer to 'matched'
-  const { error } = await supabase.rpc('match_p2p_wager', {
-    target_offer_id: offerId,
-    taker_id: user.id,
-    match_amount: amount
-  });
-
-  if (error) alert(error.message);
-  else alert("Wager Matched! It's on.");
-};
