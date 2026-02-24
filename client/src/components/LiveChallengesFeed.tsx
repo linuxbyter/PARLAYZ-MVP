@@ -69,17 +69,16 @@ export default function LiveChallengesFeed({
       setLoading(true);
       setError('');
       
-      // FIX: Explicitly specify the foreign key relationships
-      // This tells PostgREST EXACTLY which FK to use for each join
+      // FIX: Use column names instead of constraint names for disambiguation
       const { data, error: fetchError } = await supabase
         .from('p2p_offers')
         .select(`
           *,
-          creator_profile:profiles!p2p_offers_creator_id_fkey(
+          creator_profile:profiles!creator_id(
             username,
             wallet_balance
           ),
-          taker_profile:profiles!p2p_offers_taker_id_fkey(
+          taker_profile:profiles!taker_id(
             username
           )
         `)
@@ -369,4 +368,5 @@ function OfferCard({
       </div>
     </div>
   );
-}
+                                  }
+      
