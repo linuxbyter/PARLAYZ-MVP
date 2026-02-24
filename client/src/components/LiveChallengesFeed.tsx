@@ -75,8 +75,7 @@ export default function LiveChallengesFeed({
         .select(`
           *,
           creator_profile:profiles!creator_id(
-            username,
-            wallet_balance
+            username,wallet_balance
           ),
           taker_profile:profiles!taker_id(
             username
